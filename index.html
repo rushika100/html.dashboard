@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Donation Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+            background: linear-gradient(135deg, #4e54c8, #8f94fb);
+            color: #fff;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: auto;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 34px;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+
+        .cards {
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(15px);
+            padding: 25px;
+            border-radius: 15px;
+            width: 32%;
+            min-width: 250px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            transition: 0.3s;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 30px rgba(0,0,0,0.25);
+        }
+
+        .card h2 {
+            margin: 0;
+            font-size: 22px;
+        }
+
+        .card i {
+            font-size: 30px;
+            float: right;
+            opacity: 0.8;
+        }
+
+        .value {
+            font-size: 34px;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        .section {
+            margin-top: 30px;
+            background: rgba(255,255,255,0.18);
+            backdrop-filter: blur(15px);
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            color: #fff;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+        }
+
+        th {
+            background: rgba(255,255,255,0.25);
+            font-weight: 600;
+        }
+
+        tr:hover {
+            background: rgba(255,255,255,0.1);
+        }
+
+        .latest-donor {
+            background: rgba(255,255,255,0.25);
+            padding: 12px;
+            border-radius: 10px;
+            font-size: 18px;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+    
+    <h1>Donation Tracking Dashboard</h1>
+
+    <!-- Data Cards -->
+    <div class="cards">
+        <div class="card">
+            <h2>Total Donations <i class="fa-solid fa-hand-holding-dollar"></i></h2>
+            <div class="value" id="totalAmount">₹0</div>
+        </div>
+
+        <div class="card">
+            <h2>Total Donors <i class="fa-solid fa-users"></i></h2>
+            <div class="value" id="totalDonors">0</div>
+        </div>
+
+        <div class="card">
+            <h2>Average Donation <i class="fa-solid fa-chart-line"></i></h2>
+            <div class="value" id="avgDonation">₹0</div>
+        </div>
+    </div>
+
+    <!-- Latest Donor -->
+    <div class="section">
+        <h2>🎉 Latest Donor</h2>
+        <div class="latest-donor" id="latestDonorBox">Loading...</div>
+    </div>
+
+    <!-- Donation Trend Chart -->
+    <div class="section">
+        <h2>📊 Donation Trend</h2>
+        <canvas id="donationChart"></canvas>
+    </div>
+
+    <!-- Donation Table -->
+    <div class="section">
+        <h2>📁 Donation Details</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Donor Name</th>
+                    <th>Amount</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody id="donationTable"></tbody>
+        </table>
+    </div>
+
+</div>
+
+<script>
+    // Dummy Data
+    const donations = [
+        { name: "Amit", amount: 500, date: "2025-01-10" },
+        { name: "Priya", amount: 1000, date: "2025-01-11" },
+        { name: "Rahul", amount: 700, date: "2025-01-12" },
+        { name: "Sneha", amount: 300, date: "2025-01-13" },
+        { name: "Jay", amount: 1200, date: "2025-01-14" }
+    ];
+
+    // Calculations
+    const total = donations.reduce((sum, d) => sum + d.amount, 0);
+    const donors = donations.length;
+    const avg = Math.round(total / donors);
+
+    // Update Cards
+    document.getElementById("totalAmount").textContent = "₹" + total;
+    document.getElementById("totalDonors").textContent = donors;
+    document.getElementById("avgDonation").textContent = "₹" + avg;
+
+    // Latest Donor
+    const latest = donations[donations.length - 1];
+    document.getElementById("latestDonorBox").textContent =
+        `${latest.name} donated ₹${latest.amount} on ${latest.date}`;
+
+    // Table Fill
+    const tableBody = document.getElementById("donationTable");
+    donations.forEach(d => {
+        tableBody.innerHTML += `
+            <tr>
+                <td>${d.name}</td>
+                <td>₹${d.amount}</td>
+                <td>${d.date}</td>
+            </tr>
+        `;
+    });
+
+    // Chart
+    new Chart(document.getElementById("donationChart"), {
+        type: "line",
+        data: {
+            labels: donations.map(d => d.date),
+            datasets: [{
+                label: "Donation Amount",
+                data: donations.map(d => d.amount),
+                borderWidth: 3,
+                borderColor: "#fff",
+                pointBackgroundColor: "#fff",
+                tension: 0.4
+            }]
+        },
+        options: {
+            plugins: { legend: { labels: { color: "#fff" } } },
+            scales: {
+                x: { ticks: { color: "#fff" } },
+                y: { ticks: { color: "#fff" } }
+            }
+        }
+    });
+</script>
+
+</body>
+</html>
